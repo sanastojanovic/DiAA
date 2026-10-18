@@ -1,0 +1,19 @@
+[package]
+name = "rsckks"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+num-complex = "0.4"
+rand = "0.10"
+rand_distr = "0.6"
+thiserror = "2"
+
+[dev-dependencies]
+proptest = "1.11.0"
+criterion = "0.8"
+
+
+[[bench]]
+name = "ckks_bench"
+harness = false

@@ -1,0 +1,142 @@
+[
+    {
+        "correctCount": 1,
+        "english": "apple",
+        "intervalDays": 2,
+        "learningWeight": 6,
+        "masteryLevel": 1,
+        "nextReviewTime": 1775807664,
+        "serbian": "jabuka",
+        "wrongCount": 1
+    },
+    {
+        "correctCount": 1,
+        "english": "book",
+        "intervalDays": 2,
+        "learningWeight": 4,
+        "masteryLevel": 1,
+        "nextReviewTime": 1775807674,
+        "serbian": "knjiga",
+        "wrongCount": 0
+    },
+    {
+        "correctCount": 1,
+        "english": "dog",
+        "intervalDays": 2,
+        "learningWeight": 4,
+        "masteryLevel": 1,
+        "nextReviewTime": 1775834483,
+        "serbian": "pas",
+        "wrongCount": 0
+    },
+    {
+        "correctCount": 1,
+        "english": "cat",
+        "intervalDays": 2,
+        "learningWeight": 4,
+        "masteryLevel": 1,
+        "nextReviewTime": 1775835194,
+        "serbian": "mačka",
+        "wrongCount": 0
+    },
+    {
+        "correctCount": 0,
+        "english": "house",
+        "intervalDays": 1,
+        "learningWeight": 7,
+        "masteryLevel": 0,
+        "nextReviewTime": 1775748955,
+        "serbian": "kuća",
+        "wrongCount": 1
+    },
+    {
+        "correctCount": 0,
+        "english": "april",
+        "intervalDays": 1,
+        "learningWeight": 9,
+        "masteryLevel": 0,
+        "nextReviewTime": 1775749473,
+        "serbian": "april",
+        "wrongCount": 2
+    },
+    {
+        "correctCount": 1,
+        "english": "apply",
+        "intervalDays": 2,
+        "learningWeight": 4,
+        "masteryLevel": 1,
+        "nextReviewTime": 1775836353,
+        "serbian": "primeniti",
+        "wrongCount": 0
+    },
+    {
+        "correctCount": 0,
+        "english": "good morning",
+        "intervalDays": 1,
+        "learningWeight": 7,
+        "masteryLevel": 0,
+        "nextReviewTime": 1775749958,
+        "serbian": "dobro jutro",
+        "wrongCount": 1
+    },
+    {
+        "correctCount": 1,
+        "english": "good night",
+        "intervalDays": 2,
+        "learningWeight": 4,
+        "masteryLevel": 1,
+        "nextReviewTime": 1775836728,
+        "serbian": "laku noć",
+        "wrongCount": 0
+    },
+    {
+        "correctCount": 1,
+        "english": "good afternoon",
+        "intervalDays": 2,
+        "learningWeight": 6,
+        "masteryLevel": 1,
+        "nextReviewTime": 1775844937,
+        "serbian": "dobar dan",
+        "wrongCount": 1
+    },
+    {
+        "correctCount": 0,
+        "english": "how are you",
+        "intervalDays": 1,
+        "learningWeight": 5,
+        "masteryLevel": 0,
+        "nextReviewTime": 1775586163,
+        "serbian": "kako si",
+        "wrongCount": 0
+    },
+    {
+        "correctCount": 0,
+        "english": "thank you",
+        "intervalDays": 1,
+        "learningWeight": 5,
+        "masteryLevel": 0,
+        "nextReviewTime": 1775586163,
+        "serbian": "hvala",
+        "wrongCount": 0
+    },
+    {
+        "correctCount": 0,
+        "english": "thank you very much",
+        "intervalDays": 1,
+        "learningWeight": 5,
+        "masteryLevel": 0,
+        "nextReviewTime": 1775586163,
+        "serbian": "hvala puno",
+        "wrongCount": 0
+    },
+    {
+        "correctCount": 0,
+        "english": "see you later",
+        "intervalDays": 1,
+        "learningWeight": 5,
+        "masteryLevel": 0,
+        "nextReviewTime": 1775586163,
+        "serbian": "vidimo se kasnije",
+        "wrongCount": 0
+    }
+]

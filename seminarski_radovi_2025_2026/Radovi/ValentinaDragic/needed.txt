@@ -1,0 +1,7 @@
+# Primer 1: REST API sa autentifikacijom i bazom
+fastapi
+sqlalchemy
+alembic
+pyjwt
+passlib
+celery
