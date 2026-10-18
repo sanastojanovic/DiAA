@@ -1,0 +1,19 @@
+[
+    { "serbian": "jabuka", "english": "apple" },
+    { "serbian": "knjiga", "english": "book" },
+    { "serbian": "pas", "english": "dog" },
+    { "serbian": "mačka", "english": "cat" },
+    { "serbian": "kuća", "english": "house" },
+
+    { "serbian": "april", "english": "april" },
+    { "serbian": "primeniti", "english": "apply" },
+
+    { "serbian": "dobro jutro", "english": "good morning" },
+    { "serbian": "laku noć", "english": "good night" },
+    { "serbian": "dobar dan", "english": "good afternoon" },
+
+    { "serbian": "kako si", "english": "how are you" },
+    { "serbian": "hvala", "english": "thank you" },
+    { "serbian": "hvala puno", "english": "thank you very much" },
+    { "serbian": "vidimo se kasnije", "english": "see you later" }
+]

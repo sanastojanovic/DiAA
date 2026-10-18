@@ -1,0 +1,209 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[serbian]{babel}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{geometry}
+\geometry{verbose,tmargin=25mm,bmargin=25mm,lmargin=30mm,rmargin=25mm}
+\usepackage{setspace}
+\onehalfspacing
+
+\title{Grafovska segmentacija slika primjenom Felzenszwalb-Huttenlocher algoritma}
+\author{Filip Lalovi\'c \\ Matemati\v{c}ki fakultet \\ Univerzitet u Beogradu}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section{Uvod i formulacija problema}
+
+\subsection{Kontekst i definicija problema}
+Segmentacija slika predstavlja jedan od fundamentalnih i ujedno najizazovnijih zadataka u oblasti računarskog vida (engl. \textit{computer vision}) i digitalne obrade signala. U najširem smislu, sposobnost vizuelnog sistema, bilo ljudskog ili vještačkog, da analizira scenu direktno zavisi od njegove mogućnosti da izoluje objekte od interesa u odnosu na pozadinu i okruženje. Formalno posmatrano, proces segmentacije podrazumijeva particionisanje digitalne slike na skup međusobno disjunktnih, homogenih i prostorno povezanih regiona (segmenata) koji dijele zajednička vizuelna svojstva. Ova svojstva najčešće uključuju intenzitet svjetline, spektar boja u različitim prostorima (kao što su RGB, HSV ili CIELAB), obrasce tekstura, ili statističke karakteristike raspodjele piksela.
+
+Sa matematičkog aspekta, ukoliko digitalnu sliku posmatramo kao dvodimenzionalnu diskretnu mrežu piksela i označimo je skupom $\Omega$, primarni cilj procesa segmentacije svodi se na pronalaženje familije nepraznih podskupova $\{S_1, S_2, \dots, S_n\}$ takve da je ispunjeno nekoliko strogih uslova. Prvi uslov zahtijeva da unija svih podskupova pokriva cio domen slike:
+\begin{equation}
+    \bigcup_{i=1}^{n} S_i = \Omega.
+\end{equation}
+Drugi uslov definiše potpunu disjunktnost izdvojenih regiona, što znači da ne smije postojati preklapanje između različitih segmenata:
+\begin{equation}
+    S_i \cap S_j = \emptyset, \quad \forall i, j \in \{1, 2, \dots, n\} \ \ \text{uz uslov} \ \ i \neq j.
+\end{equation}
+Treći, i najkompleksniji uslov za implementaciju, propisuje da je svaki podskup $S_i$ koherentan i smislen u odnosu na unaprijed definisani logički predikat homogenosti $P(S_i)$. Odnosno, $P(S_i) = \text{TRUE}$ za svaki pojedinačni segment $i$. Konačno, unija bilo koja dva susjedna segmenta ne smije zadovoljavati predikat homogenosti, tj. $P(S_i \cup S_j) = \text{FALSE}$, čime se sprječava prekomjerna segmentacija i bespotrebno usitnjavanje (engl. \textit{over-segmentation}) jedinstvenih objekata.
+
+Segmentacija predstavlja most između obrade slika na niskom nivou, koja uključuje filtriranje šuma, pojačavanje kontrasta i restauraciju slika, te obrade na visokom nivou, koja obuhvata semantičko razumijevanje scene, klasifikaciju objekata i donošenje odluka. Bez tačne izolacije važnih objekata od njihove pozadine, zadaci poput ekstrakcije obilježja (engl. \textit{feature extraction}) postaju izrazito neefikasni.
+
+Značaj ovog procesa ogleda se u njegovoj sveprisutnosti u savremenim tehnološkim sistemima. U oblasti medicinske dijagnostike, napredni algoritmi za segmentaciju su od vitalnog značaja za automatsku identifikaciju anatomskih struktura: na primjer, za izolaciju kancerogenih promjena na MRI snimcima mozga, gdje je preciznost ivica ključna za planiranje hirurških zahvata, ili za praćenje promjena na krvnim sudovima radi rane detekcije kardiovaskularnih oboljenja. U domenu autonomnih vozila, segmentacija omogućava vozilu da u realnom vremenu razlikuje kolovoznu traku od trotoara, prepoznaje pješake i interpretira saobraćajnu signalizaciju, što predstavlja direktan bezbjednosni zahtjev. Nadalje, u industrijskoj kontroli kvaliteta, algoritmi se koriste za detekciju mikroskopskih defekata na proizvodnim linijama, dok se u poljoprivredi i analizi satelitskih snimaka koriste za praćenje prinosa i klasifikaciju tipova zemljišta.
+
+\subsection{Ograničenja klasičnih i heurističkih metoda}
+Tokom prvih decenija razvoja računarskog vida, rani pristupi segmentaciji slika primarno su se oslanjali na lokalne operatore, linearne transformacije i heuristike niskog nivoa. Razlog za to bila je prvenstveno limitirana računarska snaga dostupnih sistema, koja je diktirala potrebu za operacijama čija vremenska složenost direktno raste u linearnoj zavisnosti od broja piksela. Među tim tehnikama se najviše ističu metode zasnovane na analizi histograma i pragovanju (engl. \textit{thresholding}), kao i tehnike detekcije ivica zasnovane na aproksimaciji diferencijalnih operatora prvog reda (npr. Sobelov, Prewittov ili Robertsov operator) i drugog reda (npr. Laplasov operator ili Cannyjev detektor ivica). Iako su ove metode sa inženjerskog aspekta izuzetno privlačne zbog svoje brzine izvršavanja i niske memorijske zahtjevnosti, njihova pouzdanost u nekontrolisanim realnim uslovima je ograničena.
+
+Kada analiziramo ograničenja, glavni nedostatak klasičnih metoda zasnovanih na pragovanju (poput popularne Otsuove metode za automatsko određivanje globalnog praga) ogleda se u njihovoj isključivoj fokusiranosti na raspodjelu intenziteta samih piksela, pri čemu se potpuno zanemaruje informacija o prostornoj korelaciji piksela u domenu slike. Ove metode donose odluku o pripadnosti segmentu izolovano za svaki piksel. Pretpostavka na kojoj počivaju – da se objekti i pozadina mogu jasno razdvojiti na osnovu bimodalne statističke raspodjele intenziteta – u praksi gotovo nikada nije ispunjena. Prisustvo nehomogenog izvora osvjetljenja (npr. sunčeva svjetlost iz određenog ugla), pojava oštrih sjenki, teksturisanih površina ili gradijenata boja, drastično remeti ovakvu raspodjelu, što dovodi do fragmentacije unutar onoga što bi trebalo da predstavlja jedan vizuelni entitet. 
+
+S druge strane, algoritmi usmjereni na detekciju ivica pokušavaju da pronađu granice između objekata identifikacijom lokalnih maksimuma gradijenta intenziteta slike. Međutim, u prisustvu visokofrekventnog šuma, ovi diferencijalni operatori pokazuju izraženu osjetljivost, zbog činjenice da izvodi inherentno pojačavaju šum visoke frekvencije. Kao rezultat toga, detektori često generišu lažne ivice unutar homogenih regiona ili, nasuprot tome, prekinute i izolovane konture oko pravih objekata. Kako bi se od ovakvih isprekidanih graničnih linija dobili zatvoreni i smisleni regioni neophodni za potpunu segmentaciju, potrebno je primijeniti dodatne, izuzetno složene algoritme za povezivanje ivica (engl. \textit{edge linking}) i morfološke operacije. Ovi naknadni koraci često zahtijevaju fino ugađanje mnoštva parametara za svaki specifičan tip slike, čineći cjelokupan proces podložnim greškama, krhkim (engl. \textit{brittle}) i teško uopštivim na širi spektar problema računarskog vida izvan zatvorenih laboratorijskih okruženja.
+
+\subsection{Motivacija za grafovski pristup}
+Kako bi se obezbijedio viši nivo robusnosti i prevazišla strukturna ograničenja lokalnih operatora i analize histograma, u modernom računarskom vidu razvijene su metode koje proces segmentacije formulišu kao problem globalne optimizacije. U takvim postavkama, slika se više ne posmatra kao dvodimenzionalni niz nezavisnih intenziteta, već kao međusobno zavisna i koherentna mrežna struktura. 
+
+U srcu grafovskog pristupa leži postupak preslikavanja. Digitalna slika se prevodi u težinski neusmjereni graf $G = (V, E)$. U ovoj reprezentaciji, skup čvorova (engl. \textit{vertices}) $V$ odgovara strukturi piksela slike, tako da svaki piksel postaje jedan čvor grafa. Skup ivica (engl. \textit{edges}) $E$ se konstruiše tako da modeluje samo lokalne prostorne relacije, čime se izbjegava kreiranje potpunog grafa koji bi zahtijevao neuporedivo više računarskih resursa za obradu. Povezivanje se najčešće obavlja definisanjem topologije zasnovane na mreži (engl. \textit{grid graph}), gdje se koriste pravila 4-povezanosti (piksel se povezuje samo sa svojim ortogonalnim susjedima: sjever, jug, istok, zapad) ili 8-povezanosti (uključujući i dijagonalne susjede).
+
+Suština ovog modeliranja leži u pridruživanju parametara ivicama. Svakoj grani $e = (v_i, v_j) \in E$ koja povezuje dva čvora pridružuje se nenegativna skalarna vrijednost – težina $w(v_i, v_j)$. Funkcija težine je pažljivo konstruisana kako bi kvantifikovala mjeru razlike (odnosno nesličnosti) između odgovarajućih piksela. Što su pikseli sličniji po pitanju atributa poput apsolutne razlike u intenzitetu svjetline ili Euklidske udaljenosti u nekom od prostora boja, to je težina grane koja ih povezuje manja. Nasuprot tome, velike težine ukazuju na nagle promjene u vizuelnim karakteristikama, što predstavlja potencijalnu granicu (ivicu) između dva različita entiteta ili objekta na slici. 
+
+Kroz ovakvu matematičku apstrakciju, naizgled težak problem segmentacije slike i pronalaženja složenih granica objekata elegantno se transformiše u klasičan kombinatorni problem na grafu: problem optimalnog particionisanja grafa. Odluka o tome koji pikseli treba da budu grupisani zajedno više se ne donosi isključivo na osnovu lokalnog praga, već se oslanja na mjerenje odnosa između unutrašnjih svojstava podgrafa (engl. \textit{internal properties}) i svojstava granica između podgrafova (engl. \textit{boundary properties}). Algoritmi koji se koriste u ovu svrhu kreću se od pristupa minimalnog reza grafa (engl. \textit{Minimum Cut}), preko normalizovanih rezova (engl. \textit{Normalized Cuts}), pa sve do izuzetno efikasnih metoda zasnovanih na minimalnim razapinjućim stablima (engl. \textit{Minimum Spanning Trees}). Ono što povezuje sve ove metode jeste sposobnost donošenja optimalnih odluka zasnovanih na širem, globalnom kontekstu posmatrane scene, čime se obezbjeđuje visoka otpornost algoritma na prisustvo lokalnog šuma, izražene teksture i spore varijacije u osvjetljenju.
+
+\subsection{Organizacija rada}
+Ovaj seminarski rad polazi od osnovnih teorijskih koncepata, preko specifične algoritamske analize, do konkretne implementacije i eksperimentalne provjere.
+
+U poglavlju 2 biće izložene teorijske osnove i matematički aparat neophodan za formalizaciju slike kao težinskog neusmjerenog grafa, uključujući funkcije za računanje težina grana u RGB prostoru. Poglavlje 3 se fokusira na algoritamsko rješenje grafovskog particionisanja, gdje su definisani predikati spajanja i mjere koherentnosti regiona. Poglavlje 4 analizira softversku implementaciju, sa posebnim osvrtom na upotrebu strukture disjunktnih skupova (engl. \textit{Disjoint-Set Union}) koja obezbjeđuje visoku efikasnost i obradu slika u gotovo realnom vremenu. Poglavlje 5 je posvećeno eksperimentalnoj evaluaciji i prikazu uticaja hiperparametara na finalnu segmentaciju realnih slika. Rad se zaključuje poglavljem 6, gdje se sumiraju ključni rezultati, navode ograničenja ovog pristupa i diskutuju pravci daljeg razvoja, uključujući integraciju teorije grafova sa modelima dubokog učenja.
+
+
+% ---------- TEORIJSKE OSNOVE ----------
+\section{Teorijske osnove i matematički model}
+
+Da bi se problem segmentacije slike mogao rješavati alatima iz teorije grafova, neophodno je uspostaviti rigoroznu matematičku vezu između digitalne reprezentacije slike i apstraktnih grafovskih struktura. Ovo poglavlje je posvećeno detaljnoj formalizaciji tog prelaza, definisanju topologije mreže i uspostavljanju adekvatnih metrika za računanje razlika između posmatranih elemenata.
+
+\subsection{Formalizacija digitalne slike kao neusmjerenog grafa}
+U domenu računarskog vida, digitalna slika u boji se standardno posmatra kao dvodimenzionalna matrica (ili tenzor), gdje svaki element matrice predstavlja jedan piksel. Neka je $\Omega \subset \mathbb{Z}^2$ diskretni domen slike dimenzija $N \times M$. Sliku možemo definisati kao vektorsku funkciju $I: \Omega \rightarrow \mathbb{R}^3$, koja svakoj prostornoj koordinati $(x, y) \in \Omega$ dodjeljuje vektor intenziteta u odgovarajućem prostoru boja.
+
+Grafovski pristup zahtijeva mapiranje ovog prostornog domena u težinski neusmjereni graf $G = (V, E)$. Skup čvorova grafa $V$ konstruiše se tako što se uspostavlja bijekcija između piksela slike i čvorova, te važi:
+\begin{equation}
+    V = \{v_i \mid i = 1, 2, \dots, N \times M\}.
+\end{equation}
+Svaki čvor $v_i \in V$ inkapsulira informaciju o prostornoj poziciji piksela $(x_i, y_i)$ i njegovom vektoru boja $I(v_i)$. 
+
+Skup grana (ivica) $E \subseteq V \times V$ modeluje topološke relacije između čvorova. Umjesto kreiranja potpunog grafa, koji bi rezultovao ekstremno visokom računarskom složenošću $\mathcal{O}(|V|^2)$, slika se modeluje kao mrežni graf (engl. \textit{grid graph}). U praksi se to postiže uvođenjem koncepta lokalnog susjedstva $N(v_i)$. Grana $e = (v_i, v_j)$ postoji u skupu $E$ isključivo ukoliko je čvor $v_j$ u neposrednom prostornom susjedstvu čvora $v_i$. Najčešće se primjenjuje model 8-povezanosti (Murovo susjedstvo), koji se matematički definiše preko Čebiševljeve udaljenosti (odnosno $L_\infty$ norme):
+\begin{equation}
+    E = \{ (v_i, v_j) \mid \max(|x_i - x_j|, |y_i - y_j|) \le 1, \ i \neq j \}.
+\end{equation}
+Model 8-povezanosti se preferira u odnosu na prostiji model 4-povezanosti (Fon Nojmanovo susjedstvo) jer omogućava glatkije i prirodnije detektovanje dijagonalnih ivica objekata u prirodi. S obzirom na to da je relacija susjedstva simetrična, graf $G$ je po definiciji neusmjeren. Uz ovakvu topologiju, broj grana raste linearno u odnosu na broj čvorova ($|E| \approx 4|V|$), čime se obezbjeđuje svojstvo rijetkosti grafa (engl. \textit{sparse graph}), što je kritičan preduslov za visoke performanse kasnijih faza algoritma.
+
+\subsection{Funkcije težine i metrike sličnosti u RGB prostoru}
+Da bi graf u potpunosti poslužio kao osnova za donošenje odluka o segmentaciji, svakoj grani $e \in E$ pridružuje se nenegativna skalarna vrijednost kroz funkciju težine $w: E \rightarrow \mathbb{R}^+_{0}$. U kontekstu ovog rada, težina $w(v_i, v_j)$ kvantifikuje mjeru nesličnosti između dva susjedna piksela. Prema tome, male težine indiciraju visoku korelaciju vizuelnih svojstava i sugerišu da pikseli pripadaju istom homogenom regionu, dok velike težine predstavljaju nagle promjene (gradijente) i potencijalno ukazuju na granicu između različitih objekata.
+
+Kako je definisano u prethodnom odjeljku, slika se posmatra u standardnom RGB (Red, Green, Blue) prostoru boja. Svaki piksel $v_i$ je u ovom prostoru reprezentovan trodimenzionalnim vektorom intenziteta $I(v_i) = [R_i, G_i, B_i]^T$, gdje komponente uzimaju vrijednosti iz diskretnog intervala $[0, 255]$. 
+
+Osnovna, najčešće korišćena i najprirodnija metrika za mjerenje nesličnosti jeste Euklidska udaljenost ($L_2$ norma) između vektora boja susjednih piksela. Funkcija težine se u tom slučaju formalno definiše kao:
+\begin{equation}
+    w_{L_2}(v_i, v_j) = \| I(v_i) - I(v_j) \|_2 = \sqrt{(R_i - R_j)^2 + (G_i - G_j)^2 + (B_i - B_j)^2}.
+\end{equation}
+Ova formulacija adekvatno hvata razlike u sve tri komponente svjetlosti istovremeno. Međutim, zbog prisustva operacije kvadratnog korjenovanja, čije je izračunavanje računarski skupo, u efikasnim softverskim implementacijama se često pribjegava korišćenju aproksimacije preko Menhetn udaljenosti ($L_1$ norme). Upotreba $L_1$ norme donosi značajna ubrzanja bez primjetnog gubitka na kvalitetu segmentacije:
+\begin{equation}
+    w_{L_1}(v_i, v_j) = \| I(v_i) - I(v_j) \|_1 = |R_i - R_j| + |G_i - G_j| + |B_i - B_j|.
+\end{equation}
+
+Pored samog izbora metrike, neophodno je obratiti pažnju na uticaj digitalnog šuma. Visokofrekventni senzorski šum može prouzrokovati pojavu vještački visokih vrijednosti težina na onim granama koje povezuju piksele unutar savršeno homogenog vizuelnog objekta. Ukoliko se na takve težine direktno primijeni algoritam particionisanja, doći će do neželjene pojave prekomjerne segmentacije (usitnjavanja entiteta).
+
+Kako bi se navedeni problem ublažio, standardni pristup obuhvata fazu predprocesiranja u vidu prostornog Gausovog uglačavanja (engl. \textit{Gaussian smoothing}). Originalna slika $I$ se prije konstrukcije grafa konvoluira sa dvodimenzionalnim Gausovim jezgrom čija je varijansa $\sigma^2$:
+\begin{equation}
+    I'(x, y) = I(x, y) * \frac{1}{2\pi\sigma^2} e^{-\frac{x^2 + y^2}{2\sigma^2}}.
+\end{equation}
+Ova operacija djeluje kao niskopropusni filter koji ublažava lokalne oscilacije intenziteta uzrokovane šumom, a istovremeno zadržava dominantne strukture i granice objekata u slici. Osnovu filtra čini Gausova funkcija, pri čemu parametar $\sigma$ određuje širinu raspodjele i samim tim stepen zaglađivanja. Veće vrijednosti parametra $\sigma$ rezultuju jačim uklanjanjem šuma, ali i većim gubitkom finih detalja, dok manje vrijednosti bolje čuvaju detalje slike uz slabiji efekat filtriranja.
+
+U praksi se kontinuirana Gausova funkcija najčešće aproksimira diskretnom maskom konačnih dimenzija. U ovoj implementaciji koristi se unaprijed definisana maska dimenzija $3 \times 3$
+\begin{equation}
+\label{eq:gaussian_kernel}
+\frac{1}{16}
+\begin{bmatrix}
+1 & 2 & 1\\
+2 & 4 & 2\\
+1 & 2 & 1
+\end{bmatrix}
+\end{equation}
+čiji su koeficijenti izvedeni iz Gausove raspodjele. Na taj način postiže se umjereno zaglađivanje slike uz malu računsku složenost, što je dovoljno za smanjenje uticaja šuma prije faze segmentacije.
+
+
+\subsection{Matematički kriterijumi idealne segmentacije}
+Kada je slika u potpunosti preslikana u težinski graf $G = (V, E)$, proces segmentacije postaje ekvivalentan pronalaženju optimalne particije skupa čvorova $V$ na međusobno disjunktne podskupove $S_1, S_2, \dots, S_k$. Da bi dobijena particija bila perceptivno smislena, algoritam mora ispuniti dva fundamentalna, često suprotstavljena, optimizaciona kriterijuma:
+\begin{enumerate}
+    \item \textbf{Minimizacija unutrašnje razlike:} Grane unutar istog segmenta $S_i$ moraju imati dominantno male težine, što garantuje da je izdvojeni region vizuelno homogen.
+    \item \textbf{Maksimizacija spoljašnje razlike:} Grane koje prelaze granicu između dva različita segmenta $S_i$ i $S_j$ moraju imati dominantno velike težine, što osigurava oštrinu prelaza između različitih objekata.
+\end{enumerate}
+
+Ovakva formulacija uvodi nas u sferu problema traženja minimalnog reza grafa (engl. \textit{Minimum Cut}). Ukoliko definišemo rez između dva podskupa $A, B \subset V$ kao sumu težina grana koje ih povezuju:
+\begin{equation}
+    Cut(A, B) = \sum_{u \in A, v \in B} w(u, v),
+\end{equation}
+Iako bi logičan pristup bio traženje particije koja minimizuje ovu vrijednost, klasični minimalni rez često dovodi do izdvajanja veoma malih i izolovanih komponenti. Zbog toga će u ovom radu biti korišten Felzenszwalb-Huttenlocher (FH) algoritam, koji problem segmentacije rješava bottom-up pristupom zasnovanim na osobinama minimalnih razapinjućih stabala (engl. \textit{Minimum Spanning Trees}). Na taj način postiže se dobar balans između homogenosti regiona i očuvanja značajnih granica na slici.
+
+% ----------- ALGORITAMSKA RJESENJA -------------
+
+\section{Algoritamska rješenja}
+
+Felzenszwalb-Huttenlocher (FH) algoritam predstavlja pristup zasnovan na pohlepnoj strategiji (engl. \textit{greedy strategy}), koji sliku segmentiše kroz iterativno spajanje regiona. Umjesto globalnog rezanja grafa, algoritam gradi strukturu segmenata odozdo prema gore (engl. \textit{bottom-up}), poštujući lokalna svojstva slike, ali uz matematičku kontrolu koja osigurava globalnu koherentnost.
+
+\subsection{Koncept minimalnog razapinjućeg stabla}
+Ključna ideja FH algoritma je predstavljanje svakog segmenta pomoću njegovog minimalnog razapinjućeg stabla (MST). MST predstavlja podgraf koji povezuje sve čvorove u segmentu bez ciklusa, pri čemu je suma težina grana minimalna. Za segment $C$, unutrašnja razlika $Int(C)$ definiše se kao težina najteže grane u njegovom MST-u:
+\begin{equation}
+    Int(C) = \max_{e \in MST(C, E)} w(e).
+\end{equation}
+Ova vrijednost predstavlja intenzitet najveće promjene unutar samog segmenta. Ukoliko segment sadrži samo jedan piksel, unutrašnja razlika je definisana kao nula ($Int(C) = 0$).
+
+\subsection{Predikat spajanja komponenti}
+Odluka o tome da li će se dva susjedna segmenta $C_1$ i $C_2$ spojiti donosi se na osnovu poređenja razlike između tih komponenti i njihove unutrašnje razlike. Razlika između dvije komponente, $Diff(C_1, C_2)$, definisana je kao minimalna težina grane koja povezuje neki čvor iz $C_1$ sa čvorom iz $C_2$:
+\begin{equation}
+    Diff(C_1, C_2) = \min_{v_i \in C_1, v_j \in C_2, (v_i, v_j) \in E} w(v_i, v_j).
+\end{equation}
+Algoritam spaja komponente $C_1$ i $C_2$ ako i samo ako je $Diff(C_1, C_2) \le MInt(C_1, C_2)$, gdje je $MInt$ (minimalna unutrašnja razlika) definisana kao:
+\begin{equation}
+    MInt(C_1, C_2) = \min(Int(C_1) + \tau(C_1), Int(C_2) + \tau(C_2)).
+\end{equation}
+Ovdje $\tau(C)$ predstavlja prag funkciju $\tau(C) = k / |C|$, gdje je $k$ hiperparametar koji kontroliše veličinu segmenata, a $|C|$ označava broj piksela u komponenti.
+
+\subsection{Uloga hiperparametra $k$ i adaptivnost}
+Parametar $k$ direktno utiče na to koliko odstupanje je potrebno za razdvajanje dva regiona. U regionima gdje je $|C|$ veliko, $\tau(C)$ postaje malo, što algoritam čini strožim i osjetljivijim na razlike, sprečavajući spajanje objekata koji se razlikuju. Nasuprot tome, za male komponente, prag je veći, što dozvoljava spajanje piksela i formiranje inicijalnih regiona uprkos lokalnim varijacijama u boji.
+
+Ovaj mehanizam čini FH algoritam izrazito adaptivnim jer ne koristi isti kriterijum za cijelu sliku. Umjesto toga, odluku o spajanju regiona donosi na osnovu njihovih lokalnih karakteristika. U ravnim i homogenim dijelovima slike, gdje su susjedni pikseli veoma slični, i mala promjena može predstavljati stvarnu granicu objekta, pa algoritam postaje osjetljiviji na razdvajanje regiona. Nasuprot tome, u područjima bogatim teksturom, sjenama ili sitnim detaljima, prirodno postoje veće razlike između susjednih piksela, pa algoritam takve promjene ne tumači odmah kao granice. Na taj način izbjegava nepotrebno usitnjavanje slike, dok istovremeno uspijeva da sačuva stvarne granice između različitih objekata.
+
+
+% ------------- IMPLEMENTACIJA ---------------
+\section{Implementacija}
+
+Efikasnost Felzenszwalb-Huttenlocher (FH) algoritma direktno zavisi od implementacije operacija nad skupovima segmenata. U našem rješenju, softverska arhitektura je optimizovana korišćenjem strukture disjunktnih skupova (\textit{Disjoint-Set Union} - DSU), koja omogućava upravljanje particijama grafa uz minimalne računarske troškove.
+
+\subsection{Struktura disjunktnih skupova (DSU)}
+Struktura DSU nam omogućava efikasno održavanje informacija o pripadnosti piksela određenom segmentu. Svaki piksel (čvor) inicijalno predstavlja sopstveni skup. Implementacija koristi dvije ključne optimizacije koje garantuju amortizovanu vremensku složenost operacija od gotovo konstantne vrijednosti $\mathcal{O}(\alpha(V))$, gdje je $\alpha$ inverzna Akermanova funkcija:
+
+\begin{itemize}
+    \item \textbf{Kompresija putanje (\textit{Path Compression}):} Prilikom svake operacije \texttt{find}, čvorovi na putu do korijena se direktno povezuju sa korijenom, čime se drastično smanjuje dubina stabla za buduće pretrage.
+    \item \textbf{Unija po veličini (\textit{Union by Size}):} Prilikom spajanja dva skupa, manje stablo se uvijek pripaja većem, čime se balansira struktura i sprječava degeneracija stabla.
+\end{itemize}
+
+U implementaciji je korišćena klasa \texttt{DSU}, koja za svaku komponentu održava roditelja, veličinu skupa i trenutnu unutrašnju razliku $Int(C)$.
+
+\subsection{Algoritamski tok i sortiranje grana}
+Implementacioni proces se odvija kroz tri ključne faze, precizno prateći logiku iz priloženog repozitorijuma:
+
+\begin{enumerate}
+    \item \textbf{Konstrukcija grafa:} Generisanje grana između susjednih piksela i izračunavanje njihove težine ($L_1$ norma) u RGB prostoru.
+    \item \textbf{Sortiranje:} Sve generisane grane se sortiraju u rastućem poretku na osnovu težine. Ovo je najzahtjevniji korak sa složenošću $\mathcal{O}(E \log E)$, gdje je $E$ broj grana.
+    \item \textbf{Iterativno spajanje:} Algoritam prolazi kroz sortiranu listu grana. Za svaku granu $(v_i, v_j)$, provjerava se da li pikseli pripadaju različitim komponentama. Ukoliko pripadaju, provjerava se predikat spajanja:
+    \begin{equation}
+        Diff(C_1, C_2) \le MInt(C_1, C_2).
+    \end{equation}
+    Ukoliko je predikat zadovoljen, poziva se operacija \texttt{union} nad DSU strukturom, čime se dvije komponente spajaju u jednu.
+\end{enumerate}
+
+Ovakav pristup, zasnovan na sortiranju i Union-Find strukturi, omogućava efikasnu obradu velikog broja piksela, uz jasno praćenje stanja $Int(C)$ za svaku komponentu.
+
+\section{Eksperimenti i analiza rezultata}
+
+\subsection{Postavka eksperimenta}
+Algoritam je testiran na tri slike iz foldera \texttt{images}, različitih veličina i sadržaja. Za svaku sliku pokrenuta je segmentacija sa tri vrijednosti parametra $k$ i tri vrijednosti praga za uklanjanje pozadine (\texttt{tol}). Na taj način dobijeno je ukupno 27 kombinacija, što je dovoljno da se vidi kako se ponašanje algoritma mijenja bez prevelikog opterećenja dokumenta nepotrebnim detaljima.
+
+\subsection{Izbor parametara $k$ i \texttt{tol}}
+Vrijednost $k$ određuje koliko lako se regioni spajaju. Manji $k$ daje više sitnih segmenata, dok veći $k$ vodi ka krupnijim regionima. Zbog toga su izabrane tri reprezentativne vrijednosti: jedna niža, jedna srednja i jedna viša. Na taj način se vidi i konzervativno i agresivnije spajanje segmenata.
+
+Prag \texttt{tol} koristi se u drugoj fazi, pri proširivanju pozadine na susjedne komponente slične boje. I ovdje su izabrane tri vrijednosti: niža, srednja i viša. Niži prag daje strožije uklanjanje pozadine, dok viši prag lakše proglašava susjedne regione dijelom pozadine.
+
+\subsection{Vizuelni uticaj}
+Na osnovu dobijenih rezultata vidi se da se sa rastom parametra $k$ segmenti postepeno ujedinjuju, pa slika postaje jednostavnija i manje fragmentisana. Kod manjih vrijednosti granice su preciznije, ali se često javljaju dodatni mali segmenti. Parametar \texttt{tol} uglavnom utiče na finalnu masku: kada je previsok, dio objekta može biti nepravedno uključen u pozadinu, a kada je prenizak, ostaju sitni ostaci pozadine u maski.
+
+Za prikaz finalnog rezultata uz masku je korisna i slika na kojoj je pozadina obojena crno, a objekat ostavljen u originalnim bojama. Ona je preglednija od binarne maske jer zadržava vizuelni kontekst slike.
+
+Uklanjanje pozadine je rađeno u dvije jednostavne faze. Prvo se tražila komponenta koja dodiruje najveći broj ivica slike, jer je ona najčešće dio pozadine. Zatim su joj pridruživane susjedne komponente slične boje, a na kraju su uklanjani i mali izdvojeni regioni koji su ostali nakon toga. Na taj način se dobija čišća maska i stabilniji prikaz objekta.
+
+\section{Zaključak}
+U ovom radu je prikazan grafovski pristup segmentaciji slike i njegova praktična primjena kroz Felzenszwalb-Huttenlocher algoritam. Prednost ovog pristupa je u tome što ne zahtijeva unaprijed poznat broj segmenata i što dobro balansira između lokalnih razlika i globalne strukture slike.
+
+Rezultati pokazuju da izbor parametra $k$ ima najizraženiji uticaj na izgled segmentacije, dok \texttt{tol} dodatno koriguje završnu ekstrakciju pozadine. U praksi se najbolji efekat dobija kada se oba parametra podešavaju u skladu sa sadržajem slike. Za buduća unapređenja bilo bi korisno dodati automatski izbor parametara, bolje filtriranje sitnih regiona i obradu u drugim bojim prostorima, kao što su HSV, CIELAB ili YCbCr, jer oni često bolje odvajaju boju od osvjetljenja. Takođe bi vrijedilo ispitati da li se na određene vrste slika isplati koristiti jedan prostor za segmentaciju, a drugi za finalno čišćenje maske.
+\end{document}

@@ -1,0 +1,155 @@
+# Registar zavisnosti Python paketa
+
+# --- Web frameworks ---
+flask: werkzeug, jinja2, click, itsdangerous
+django: sqlparse, asgiref
+fastapi: starlette, pydantic, anyio
+starlette: anyio, typing-extensions
+pydantic: typing-extensions, annotated-types
+anyio: idna, sniffio
+
+# --- HTTP / networking ---
+requests: urllib3, certifi, charset-normalizer, idna
+httpx: httpcore, certifi, idna, sniffio, h11
+httpcore: h11, certifi
+aiohttp: aiosignal, frozenlist, multidict, yarl, async-timeout
+yarl: multidict, idna
+
+# --- Templating / markup ---
+jinja2: markupsafe
+werkzeug: markupsafe
+
+# --- CLI ---
+click:
+typer: click, rich
+rich: markdown-it-py, pygments
+markdown-it-py: mdurl
+
+# --- Data science ---
+numpy:
+pandas: numpy, python-dateutil, pytz, tzdata
+scipy: numpy
+matplotlib: numpy, pillow, pyparsing, python-dateutil, cycler, kiwisolver, contourpy, fonttools
+scikit-learn: numpy, scipy, joblib, threadpoolexecutor
+statsmodels: numpy, scipy, pandas, patsy
+
+# --- Database ---
+sqlalchemy: greenlet, typing-extensions
+alembic: sqlalchemy, mako, typing-extensions
+psycopg2:
+pymongo: dnspython
+redis:
+motor: pymongo
+
+# --- Auth / security ---
+cryptography: cffi
+cffi: pycparser
+pyjwt: cryptography
+passlib: bcrypt
+bcrypt:
+itsdangerous:
+
+# --- Task queues ---
+celery: billiard, kombu, vine, click, tzdata
+kombu: vine, amqp
+amqp: vine
+billiard:
+vine:
+
+# --- Testing ---
+pytest: pluggy, packaging, iniconfig
+pytest-asyncio: pytest
+pytest-cov: pytest, coverage
+coverage:
+hypothesis: attrs, sortedcontainers
+factory-boy: faker
+faker: python-dateutil, babel
+
+# --- Serialization ---
+marshmallow: packaging
+pydantic: typing-extensions, annotated-types
+
+# --- Utilities ---
+pillow:
+pyparsing:
+python-dateutil: six
+pytz:
+tzdata:
+six:
+idna:
+certifi:
+charset-normalizer:
+urllib3:
+sniffio:
+h11:
+frozenlist:
+aiosignal: frozenlist
+multidict:
+async-timeout:
+dnspython:
+greenlet:
+mako: markupsafe
+markupsafe:
+pygments:
+mdurl:
+annotated-types:
+typing-extensions:
+packaging:
+pluggy:
+iniconfig:
+attrs:
+sortedcontainers:
+joblib:
+threadpoolexecutor:
+patsy: numpy, six
+cycler:
+kiwisolver:
+contourpy: numpy
+fonttools:
+pycparser:
+asgiref:
+sqlparse:
+babel: pytz
+coverage:
+bcrypt:
+
+# --- Machine learning ---
+tensorflow: numpy, grpcio, protobuf, keras, tensorboard
+keras: numpy, h5py
+torch: typing-extensions, filelock, sympy, networkx
+transformers: numpy, tokenizers, huggingface-hub, pyyaml, requests
+spacy: numpy, cymem, preshed, thinc, typer
+thinc: numpy, blis, murmurhash
+
+# --- DevOps / cloud ---
+docker: requests, websocket-client
+kubernetes: pyyaml, requests, urllib3
+boto3: botocore, s3transfer, jmespath
+botocore: urllib3, python-dateutil, jmespath
+
+# --- Scraping ---
+beautifulsoup4: soupsieve
+scrapy: twisted, cryptography, cssselect, parsel
+selenium: urllib3, trio, trio-websocket
+
+# --- Async ecosystem ---
+trio: attrs, sniffio, outcome
+trio-websocket: trio, wsproto
+websockets:
+
+# --- Visualization ---
+plotly: tenacity, packaging
+seaborn: numpy, pandas, matplotlib
+
+# --- NLP ---
+nltk: click, joblib, regex, tqdm
+gensim: numpy, scipy, smart-open
+
+# --- Game / graphics ---
+pygame:
+moderngl: glcontext
+
+# --- Intentional cycle example ---
+#package-a: package-b
+#package-b: package-c
+#package-c: package-a

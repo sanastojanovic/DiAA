@@ -1,0 +1,110 @@
+
+./program random 200000 100000000 100000000 seed 2 prim
+./program random 200000 100000000 100000000 seed 2 kruskal
+
+./program random 200000 100000000 100000000 seed 3 prim
+./program random 200000 100000000 100000000 seed 3 kruskal
+
+./program random 200000 100000000 100000000 seed 5 prim
+./program random 200000 100000000 100000000 seed 5 kruskal
+
+./program random 200000 100000000 100000000 seed 7 prim
+./program random 200000 100000000 100000000 seed 7 kruskal
+
+./program random 200000 100000000 100000000 seed 11 prim
+./program random 200000 100000000 100000000 seed 11 kruskal
+
+./program random 500000 100000000 100000000 seed 2 prim
+./program random 500000 100000000 100000000 seed 2 kruskal
+
+./program random 500000 100000000 100000000 seed 3 prim
+./program random 500000 100000000 100000000 seed 3 kruskal
+
+./program random 500000 100000000 100000000 seed 5 prim
+./program random 500000 100000000 100000000 seed 5 kruskal
+
+./program random 500000 100000000 100000000 seed 7 prim
+./program random 500000 100000000 100000000 seed 7 kruskal
+
+./program random 500000 100000000 100000000 seed 11 prim
+./program random 500000 100000000 100000000 seed 11 kruskal
+
+
+
+./program random 1000000 100000000 100000000 seed 2 prim
+./program random 1000000 100000000 100000000 seed 2 kruskal
+
+./program random 1000000 100000000 100000000 seed 3 prim
+./program random 1000000 100000000 100000000 seed 3 kruskal
+
+./program random 1000000 100000000 100000000 seed 5 prim
+./program random 1000000 100000000 100000000 seed 5 kruskal
+
+./program random 1000000 100000000 100000000 seed 7 prim
+./program random 1000000 100000000 100000000 seed 7 kruskal
+
+./program random 1000000 100000000 100000000 seed 11 prim
+./program random 1000000 100000000 100000000 seed 11 kruskal
+
+
+./program random 2000000 100000000 100000000 seed 2 prim
+./program random 2000000 100000000 100000000 seed 2 kruskal
+
+./program random 2000000 100000000 100000000 seed 3 prim
+./program random 2000000 100000000 100000000 seed 3 kruskal
+
+./program random 2000000 100000000 100000000 seed 5 prim
+./program random 2000000 100000000 100000000 seed 5 kruskal
+
+./program random 2000000 100000000 100000000 seed 7 prim
+./program random 2000000 100000000 100000000 seed 7 kruskal
+
+./program random 2000000 100000000 100000000 seed 11 prim
+./program random 2000000 100000000 100000000 seed 11 kruskal
+
+
+./program random 5000000 100000000 100000000 seed 2 prim
+./program random 5000000 100000000 100000000 seed 2 kruskal
+
+./program random 5000000 100000000 100000000 seed 3 prim
+./program random 5000000 100000000 100000000 seed 3 kruskal
+
+./program random 5000000 100000000 100000000 seed 5 prim
+./program random 5000000 100000000 100000000 seed 5 kruskal
+
+./program random 5000000 100000000 100000000 seed 7 prim
+./program random 5000000 100000000 100000000 seed 7 kruskal
+
+./program random 5000000 100000000 100000000 seed 11 prim
+./program random 5000000 100000000 100000000 seed 11 kruskal
+
+
+./program random 3000000 100000000 100000000 seed 2 prim
+./program random 3000000 100000000 100000000 seed 2 kruskal
+
+./program random 3000000 100000000 100000000 seed 3 prim
+./program random 3000000 100000000 100000000 seed 3 kruskal
+
+./program random 3000000 100000000 100000000 seed 5 prim
+./program random 3000000 100000000 100000000 seed 5 kruskal
+
+./program random 3000000 100000000 100000000 seed 7 prim
+./program random 3000000 100000000 100000000 seed 7 kruskal
+
+./program random 3000000 100000000 100000000 seed 11 prim
+./program random 3000000 100000000 100000000 seed 11 kruskal
+
+./program random 4000000 100000000 100000000 seed 2 prim
+./program random 4000000 100000000 100000000 seed 2 kruskal
+
+./program random 4000000 100000000 100000000 seed 3 prim
+./program random 4000000 100000000 100000000 seed 3 kruskal
+
+./program random 4000000 100000000 100000000 seed 5 prim
+./program random 4000000 100000000 100000000 seed 5 kruskal
+
+./program random 4000000 100000000 100000000 seed 7 prim
+./program random 4000000 100000000 100000000 seed 7 kruskal
+
+./program random 4000000 100000000 100000000 seed 11 prim
+./program random 4000000 100000000 100000000 seed 11 kruskal
